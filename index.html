@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Colorizer</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Heading Styling */
+        h2 {
+            margin-top: 50px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            background: linear-gradient(135deg, #4caf50, #2196f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1.5s ease-in-out forwards;
+            opacity: 0;
+        }
+
+        /* Fade-in Animation for Heading */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Form Styling */
+        form {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px auto;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        form:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Input and Button Styling */
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            width: calc(100% - 24px);
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="file"]:focus {
+            border-color: #4caf50;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 128, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            box-shadow: 0 6px 12px rgba(0, 128, 0, 0.3);
+        }
+
+        /* Result Styling */
+        #result {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-container img {
+            width: 300px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Back Button Styling */
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 128, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #1976d2;
+            box-shadow: 0 6px 12px rgba(0, 0, 128, 0.3);
+        }
+
+        /* Heading Styling for Output */
+        .output-heading {
+            font-size: 18px;
+            color: #444;
+            margin-top: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload a Black and White Image to Colorize</h2>
+    <form id="uploadForm" action="http://127.0.0.1:5000/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" accept="image/*">
+        <button type="button" onclick="submitForm()">Colorize Image</button>
+    </form>
+
+    <div id="result"></div>
+    
+    <a href="/" class="back-button">Go Back to Homepage</a>
+
+    <script>
+        function submitForm() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+
+            if (fileInput.files.length > 0) {
+                // If a file is selected, use it
+                formData.append('file', fileInput.files[0]);
+            } else {
+                alert('Please select a file.');
+                return;
+            }
+
+            // Send form data to the server
+            fetch('http://127.0.0.1:5000/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = ''; // Clear previous results
+
+                // Display original and colorized images with headings
+                const originalContainer = document.createElement('div');
+                originalContainer.classList.add('image-container');
+
+                const originalHeading = document.createElement('div');
+                originalHeading.classList.add('output-heading');
+                originalHeading.innerText = 'Black and White Image';
+                
+                const originalImg = document.createElement('img');
+                originalImg.src = URL.createObjectURL(fileInput.files[0]);
+
+                originalContainer.appendChild(originalHeading);
+                originalContainer.appendChild(originalImg);
+
+                const colorizedContainer = document.createElement('div');
+                colorizedContainer.classList.add('image-container');
+
+                const colorizedHeading = document.createElement('div');
+                colorizedHeading.classList.add('output-heading');
+                colorizedHeading.innerText = 'Colorized Image';
+
+                const colorizedImg = document.createElement('img');
+                colorizedImg.src = url;
+
+                colorizedContainer.appendChild(colorizedHeading);
+                colorizedContainer.appendChild(colorizedImg);
+
+                resultDiv.appendChild(originalContainer);
+                resultDiv.appendChild(colorizedContainer);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
